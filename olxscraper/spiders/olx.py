@@ -26,13 +26,13 @@ yield scrapy.Request(url, headers=headers, callback=self.parse)
                 
                 
                 "description":products.css('div[data-aut-id="itemDescriptionContent"].p::text').getall(),
-                /response.css(".itemDescriptionContent p::text
+                # /response.css(".itemDescriptionContent p::text
 
                 "property_id":products.css("a::attr(href)").get()[63:-1],
-                products.css("div strong::text").getall(),
-                products.css("_1-oS0.strong::text").getall()
+                # products.css("div strong::text").getall(),
+                # products.css("_1-oS0.strong::text").getall()
                 products.xpath("//div[@class='_1-oS0']/strong/following-sibling::text()").extract()
-                "seller_name":products.css("div.eHFQs").getall(),
+                # "seller_name":products.css("div.eHFQs").getall(),
                 "property_type":products.css("span.B6X7c").getall(),
                 "bathrooms":products.css('span.B6X7c[data-aut-id="value_bathrooms"]::text').getall(),
                 "bedrooms":products.css('span.B6X7c[data-aut-id="value_rooms"]::text').getall()
