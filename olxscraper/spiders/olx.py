@@ -3,6 +3,12 @@ import scrapy
 class Olxneww(scrapy.Spider):
     name="olx"
     start_urls=["https://www.olx.in/kozhikode_g4058877/for-rent-houses-apartments_c1723"]
+    headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+}
+
+yield scrapy.Request(url, headers=headers, callback=self.parse)
+
 
     def parse(self,response):
         for products in response.css("li._1DNjI"):
@@ -13,15 +19,17 @@ class Olxneww(scrapy.Spider):
                 "price" :products.css("span._2Ks63::text").get(),
                 "image_url":products.css("img::attr(src)").get(),
                 "location":products.css("span._2VQu4::text").get(),
-                "breadcrumbs":products.xpath("//ol[@class='rui-2Pidb']/li/a/text()").getall()[0:3]
+                "breadcrumbs":products.xpath("//ol[@class='rui-2Pidb']/li/a/text()").getall()[0:3],
+                "property_id":products.css("a::attr(href)").get()[63:-1],
 
 
                 
                 
                 "description":products.css('div[data-aut-id="itemDescriptionContent"].p::text').getall(),
-                # /response.css(".itemDescriptionContent p::text").getall()
-                # response.xpath("//div[@id='itemDescriptionContent']/following-sibling::p/text()").extract()
-                "property_id":products.css("div strong::text").getall(),
+                # /response.css(".itemDescriptionContent p::text
+
+                # "property_id":products.css("a::attr(href)").get()[63:-1],
+                products.css("div strong::text").getall(),
                 # products.css("_1-oS0.strong::text").getall()
                 # products.xpath("//div[@class='_1-oS0']/strong/following-sibling::text()").extract()
                 "seller_name":products.css("div.eHFQs").getall(),
