@@ -7,7 +7,7 @@ class Olxneww(scrapy.Spider):
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
 }
 
-yield scrapy.Request(url, headers=headers, callback=self.parse)
+# yield scrapy.Request(url, headers=headers, callback=self.parse)
 
 
     def parse(self,response):
@@ -26,12 +26,12 @@ yield scrapy.Request(url, headers=headers, callback=self.parse)
                 
                 
                 "description":products.css('div[data-aut-id="itemDescriptionContent"].p::text').getall(),
-                /response.css(".itemDescriptionContent p::text
+                # /response.css(".itemDescriptionContent p::text
 
-                "property_id":products.css("a::attr(href)").get()[63:-1],
-                products.css("div strong::text").getall(),
-                products.css("_1-oS0.strong::text").getall()
-                products.xpath("//div[@class='_1-oS0']/strong/following-sibling::text()").extract()
+                # "property_id":products.css("a::attr(href)").get()[63:-1],
+                # products.css("div strong::text").getall(),
+                # products.css("_1-oS0.strong::text").getall()
+                # products.xpath("//div[@class='_1-oS0']/strong/following-sibling::text()").extract()
                 "seller_name":products.css("div.eHFQs").getall(),
                 "property_type":products.css("span.B6X7c").getall(),
                 "bathrooms":products.css('span.B6X7c[data-aut-id="value_bathrooms"]::text').getall(),
@@ -39,11 +39,9 @@ yield scrapy.Request(url, headers=headers, callback=self.parse)
 
 
 
-                "item_deatls":products.css("span._2VQu4::text").get()
+                # "item_deatls":products.css("span._2VQu4::text").get()
                 }
-            yield{
-                
-            }
+            
             
                 
         loadmorebutton=products.css("button.btnLoadMore")
