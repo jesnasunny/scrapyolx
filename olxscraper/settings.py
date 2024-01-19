@@ -11,6 +11,9 @@ BOT_NAME = "olxscraper"
 
 SPIDER_MODULES = ["olxscraper.spiders"]
 NEWSPIDER_MODULE = "olxscraper.spiders"
+# FEEDS={
+#     "olx2.json":{'format': 'json'}
+# }
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
