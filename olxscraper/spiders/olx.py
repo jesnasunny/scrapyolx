@@ -11,12 +11,12 @@ class Olxneww(scrapy.Spider):
 
 
     def parse(self,response):
-        load_more_button = response.css("button.btnLoadMore")
-        if load_more_button:
-            button_value = load_more_button.css("::text").get()
-            self.log(f'Button Value: {button_value}')
+        # load_more_button = response.css("button.btnLoadMore")
+        # if load_more_button:
+        #     button_value = load_more_button.css("::text").get()
+        #     self.log(f'Button Value: {button_value}')
 
-            yield scrapy.Request(response.url, callback=self.parse_load_more, meta={'button_value': button_value})
+        #     yield scrapy.Request(response.url, callback=self.parse_load_more, meta={'button_value': button_value})
             
 
             
@@ -59,10 +59,19 @@ class Olxneww(scrapy.Spider):
 
                 # "item_deatls":products.css("span._2VQu4::text").get()
                 }
-            
+        load_more_button = response.css("button.btnLoadMore")
+        if load_more_button:
+            button_value = load_more_button.css("::text").get()
+            self.log(f'Button Value: {button_value}')
+            yield scrapy.Request(response.url, callback=self.parse_load_more, meta={'button_value': button_value})
+
     def parse_load_more(self, response):
         button_value = response.meta.get('button_value')
         self.log(f'Processing "Load More" with value: {button_value}')
+            
+    # def parse_load_more(self, response):
+    #     button_value = response.meta.get('button_value')
+    #     self.log(f'Processing "Load More" with value: {button_value}')
 
                 
     #     loadmorebutton=products.css("button.btnLoadMore")
