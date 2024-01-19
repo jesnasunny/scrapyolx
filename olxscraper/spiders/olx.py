@@ -2,7 +2,7 @@ import scrapy
 
 class Olxneww(scrapy.Spider):
     name="olx"
-    # headers = {
+    # headers = {tments_c172
     start_urls=["https://www.olx.in/kozhikode_g4058877/for-rent-houses-apartments_c1723"]
     # 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
 # }
@@ -11,6 +11,17 @@ class Olxneww(scrapy.Spider):
 
 
     def parse(self,response):
+        load_more_button = response.css("button.btnLoadMore")
+        if load_more_button:
+            button_value = load_more_button.css("::text").get()
+            self.log(f'Button Value: {button_value}')
+
+            yield scrapy.Request(response.url, callback=self.parse_load_more, meta={'button_value': button_value})
+            
+
+            
+
+
         for products in response.css("li._1DNjI"):
 
             
@@ -39,7 +50,7 @@ class Olxneww(scrapy.Spider):
 
 
 
-                
+
                 "bathrooms":products.css("span.YBbhy::text").get()[8],
                 
                 "bedrooms":products.css("span.YBbhy::text").get()[0]
@@ -49,12 +60,15 @@ class Olxneww(scrapy.Spider):
                 # "item_deatls":products.css("span._2VQu4::text").get()
                 }
             
-            
+    def parse_load_more(self, response):
+        button_value = response.meta.get('button_value')
+        self.log(f'Processing "Load More" with value: {button_value}')
+
                 
-        loadmorebutton=products.css("button.btnLoadMore")
-        if loadmorebutton:
-            button_value=loadmorebutton.css("::text").get()
-            yield scrapy.Request(response.url,callback=self.parse_load_more,meta={'button_value':button_value})
-    def parse_load_more(self,response):
-        pass
+    #     loadmorebutton=products.css("button.btnLoadMore")
+    #     if loadmorebutton:
+    #         button_value=loadmorebutton.css("::text").get()
+    #         yield scrapy.Request(response.url,callback=self.parse_load_more,meta={'button_value':button_value})
+    # def parse_load_more(self,response):
+    #     pass
 
