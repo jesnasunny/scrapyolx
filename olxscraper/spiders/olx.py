@@ -1,51 +1,102 @@
 import scrapy
+from scrapy_selenium import SeleniumRequest
 
-class Olxneww(scrapy.Spider):
+class OlxScraper(scrapy.Spider):
+    name = 'olx'
+    allowed_domains = ["olx.in"]
+    start_urls = ["https://www.olx.in/kozhikode_g4058877/for-rent-houses-apartments_c1723"]
+    custom_settings = {
+        'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'handle_httpstatus_list': [404],  # Handle 404 status code
+    }
 
-    name="olx"
-    
-    start_urls=["https://www.olx.in/kozhikode_g4058877/for-rent-houses-apartments_c1723"]
-    
+    def start_requests(self):
+        for url in self.start_urls:
+            yield SeleniumRequest(url=url, callback=self.parse, wait_time=10)
 
-    # custom_setting={
-    #     'FEEDS':{
-    #         "olx2.json":{'format': 'json','overwrite':True}
-    #     }
+    def parse(self, response):
+        # Extract initial page data
+        yield from self.extract_product_data(response)
 
+        # Extract additional pages using Selenium
+        page_number = 2
+        while page_number <=300:
+            next_page_url = f"https://www.olx.in/kozhikode_g4058877/for-rent-houses-apartments_c1723?page={page_number}"
+            yield SeleniumRequest(url=next_page_url, callback=self.parse_next_page, wait_time=10)
+            page_number += 1
 
-    def parse(self,response):
-    
-        for products in response.css("li._1DNjI"):
+    def extract_product_data(self, response):
+        for product in response.css("li._1DNjI"):
+            product_name = product.css("span._2poNJ::text").get()
+            property_id = product.css("a::attr(href)").get()[63:-1]
+            breadcrumbs = product.xpath("//ol[@class='rui-2Pidb']/li/a/text()").getall()
+            price = product.css("span._2Ks63::text").get()
+            image_url = product.css("img::attr(src)").get()
+            location = product.css("span._2VQu4::text").get()
+            bathroom = product.css("span.YBbhy::text").get()
+            bedrooms = product.css("span.YBbhy::text").get()
 
-            
-            yield{
-                "property_name" :products.css("span._2poNJ::text").get(),
-                "property_id":products.css("a::attr(href)").get()[63:-1],
-                "breadcrumbs":products.xpath("//ol[@class='rui-2Pidb']/li/a/text()").getall()[0:3],
-                "price" :products.css("span._2Ks63::text").get(),
+            if bathroom:
+                bathroom = bathroom[8]
+            if bedrooms:
+                bedrooms = bedrooms[0]
 
-                "image_url":products.css("img::attr(src)").get(),
-                "description":products.css('span[data-aut-id="value_description"]::text').get(),
-                "seller_name":products.css("div.eHFQs").getall(),
+            # Extracting additional details from the product page
+            product_link = product.css('li._1DNjI a::attr(href)').extract()
+            for link in product_link:
+                yield SeleniumRequest(url=response.urljoin(link), callback=self.parse_product_details,
+                                     meta={'product_name': product_name, 'property_id': property_id,
+                                           'breadcrumbs': breadcrumbs, 'price': price, 'image_url': image_url,
+                                           'location': location, 'bathroom': bathroom, 'bedrooms': bedrooms})
 
+    def parse_product_details(self, response):
+        product_name = response.meta['product_name']
+        property_id = response.meta['property_id']
+        breadcrumbs = response.meta['breadcrumbs']
+        price = response.meta['price']
+        image_url = response.meta['image_url']
+        location = response.meta['location']
+        bathrooms = response.meta['bathroom']
+        bedrooms = response.meta['bedrooms']
 
-                "location":products.css("span._2VQu4::text").get(),
-                
+        # Extracting additional details
+        type_info = response.css('span[data-aut-id="value_type"]::text').get()      
+        description = response.css('div[data-aut-id="itemDescriptionContent"] p::text').getall()
+        description_text = '\n'.join(description)
+        title = response.css('div._3Yuv9.kI9QF div.eHFQs::text').get()
+        yield {
+            'product_name': product_name,
+            'property_id': property_id,
+            'breadcrumbs': breadcrumbs,
+            'price': price,
+            'image_url': image_url,
+            'location': location,
+            'bathrooms': bathrooms,
+            'bedrooms': bedrooms,
+            'type': type_info.strip() if type_info else None,
+            'description_text': description_text,
+            'title': title.strip() if title else None
+        }
 
-                
-                "property_type":products.css("span.B6X7c").getall(),
+    def parse_next_page(self, response):
+        # Extract additional page data using Selenium
+        yield from self.extract_product_data(response)
 
-                "bathrooms":products.css("span.YBbhy::text").get()[8],
-                
-                "bedrooms":products.css("span.YBbhy::text").get()[0]
-                }
-        load_more_button = response.css("button.btnLoadMore")
-        if load_more_button:
-            button_value = load_more_button.css("::text").get()
-            self.log(f'Button Value: {button_value}')
-            yield scrapy.Request(response.url, callback=self.parse_load_more, meta={'button_value': button_value})
+        # Check if the response URL is the same as the start URL
+        if response.url == self.start_urls[0]:
+            self.logger.info('Reached the end of pages. Stopping further crawling.')
+            return
 
-    def parse_load_more(self, response):
-        button_value = response.meta.get('button_value')
-        self.log(f'Processing "Load More" with value: {button_value}')
-            
+        # Check if the next page button is disabled
+        next_page_button = response.css('button.pageNext')
+        if not next_page_button:
+            self.logger.info('No more pages to crawl')
+            return
+
+        # If the button is not disabled, extract the next page URL and continue crawling
+        next_page_button_link = response.css('button.pageNext::attr(href)').get()
+        if next_page_button_link:
+            next_page_url = response.urljoin(next_page_button_link)
+            yield SeleniumRequest(url=next_page_url, callback=self.parse_next_page, wait_time=10)
+        else:
+            self.logger.info('No more pages to crawl')

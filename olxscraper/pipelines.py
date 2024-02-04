@@ -39,3 +39,72 @@ class OlxscraperPipeline:
         # return item
 
         return item
+# import mysql.connector
+# class SaveToMySqlPipeline:
+
+#     def __init__(self):
+#         self.conn=mysql.connector.connect(
+#             host='localhost',
+#             user='',
+#             password='',
+#             database='olxnew'
+#         )
+#         self.cur=self.conn.cursor("""
+#         CREATE TABLE IF NOT EXISTS books(
+#             id int NOT NULL auto_increment,
+#             property_name VARCHAR(400),
+#             property_id INTEGER,
+#             breadcrumbs VARCHAR(100),
+#             price INTEGER,
+#             image_url VARCHAR(350),
+#             location VARCHAR(300),
+#             bathrooms INTEGER,
+#             bedrooms INTEGER,
+#             PRIMARY KEY (id)
+
+#         )
+#         """)
+#         self.cur.execute("""insert into olxnew(
+#             property_name ,
+#             property_id ,
+#             breadcrumbs,
+#             price ,
+#             image_url,
+#             location ,
+#             bathrooms ,
+#             bedrooms ,
+            
+
+
+#         )values(
+#             %s,
+#             %s,
+#             %s,
+#             %s,
+#             %s,
+#             %s,
+#             %s,
+#             %s
+
+#         )""",(
+#             item["property_name"],
+#             item["property_id"],
+#             item["breadcrumbs"],
+#             item["price"],
+#             item["image_url"],
+#             item["location"],
+#             item["bathrooms"],
+#             item["bedrooms"],
+
+
+
+
+
+
+#         ))
+#         self.conn.commit()
+#         return item
+#     def close_spider(self,spider):
+#         self.cur.close()
+#         self.conn.close()
+
