@@ -1,4 +1,5 @@
 import scrapy
+import re
 from scrapy_selenium import SeleniumRequest
 
 class OlxScraper(scrapy.Spider):
