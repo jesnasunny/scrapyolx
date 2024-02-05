@@ -28,7 +28,9 @@ class OlxScraper(scrapy.Spider):
     def extract_product_data(self, response):
         for product in response.css("li._1DNjI"):
             product_name = product.css("span._2poNJ::text").get()
-            property_id = product.css("a::attr(href)").get()[63:-1]
+            property_id_href = response.css('link[rel="canonical"]::attr(href)').get()
+            property_id = re.search(r'\d+', property_id_href).group() if property_id_href else None    
+
             breadcrumbs = product.xpath("//ol[@class='rui-2Pidb']/li/a/text()").getall()
             price = product.css("span._2Ks63::text").get()
             image_url = product.css("img::attr(src)").get()
@@ -65,17 +67,20 @@ class OlxScraper(scrapy.Spider):
         description_text = '\n'.join(description)
         title = response.css('div._3Yuv9.kI9QF div.eHFQs::text').get()
         yield {
-            'product_name': product_name,
+            'property_name': product_name,
             'property_id': property_id,
             'breadcrumbs': breadcrumbs,
             'price': price,
             'image_url': image_url,
+            'description_text': description_text,
             'location': location,
+            'seller_name': title.strip() if title else None,
+            'property_type': type_info.strip() if type_info else None,
             'bathrooms': bathrooms,
             'bedrooms': bedrooms,
-            'type': type_info.strip() if type_info else None,
-            'description_text': description_text,
-            'title': title.strip() if title else None
+            
+            
+
         }
 
     def parse_next_page(self, response):
